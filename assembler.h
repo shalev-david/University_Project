@@ -1,18 +1,21 @@
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
 
-#include "word.h"
+#include "structures.h"
 
-const char *R_commands[] = {"add", "sub", "and", "or",
-                            "nor", "move", "mvhi", "mvlo"};
+extern const char *R_commands[8];
 
-const char *I_commands[] = {"addi", "subi", "andi", "ori",
-                       "nori", "bne", "beq", "blt", "bgt",
-                       "lb", "sb", "lw", "sw", "lh", "sh"};
+extern const char *I_commands[15];
                   
-const char *J_commands[] = {"jmp", "la", "call", "stop"};
+extern const char *J_commands[4];
+
+static unsigned short IC = 100;
+static unsigned short DC = 0;
 
 
-void phase1(FILE *fp);
+unsigned short phase1(FILE *fp);
+
+unsigned short phase2(binary_file *bf);
+
 
 #endif
