@@ -4,11 +4,13 @@
 #include "structures.h"
 
 
-
 unsigned short double_comma(char c, unsigned short *error_flag, unsigned short *flag);
 
+unsigned short valid_label(char *label, size_t size, symbols_table *table);
 
+void error_handle(short err_code, char* line, short l, short c, char* file_name);
 
+symbols_table* label_exist(char* label, symbols_table *table);
 
 
 #endif

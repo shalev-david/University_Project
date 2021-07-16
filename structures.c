@@ -39,10 +39,13 @@ void binary_to_hex(code *w){
             hex = (hex<<1)|t; 
 
         }
+
         /* copy the string in hex format */
         sprintf(w->hex[count], "%02X", hex);
+
         /* add endline in the end */
-        w->hex[count][3] = '\0';
+        w->hex[count][2] = '\0';
         count++;
     }
+
 }

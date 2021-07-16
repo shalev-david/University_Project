@@ -8,9 +8,12 @@ int main(int argc, char* argv[]){
     while(--argc!=0){
         if((fp = fopen(*++argv, "r")) == NULL){
             /* handle error - couldn't open */
-            printf("couldn't open file\n");
+            printf("couldn't open %s\n", *argv);
         }else{
-            phase1(fp);
+            short result = phase1(fp, *argv);
+            if(result == 0)printf("\nFailed to encode file %s in phase 1\n", *argv);
+            else if(result == -1)printf("\nFailed to encode file %s in phase 2\n", *argv);
+            else printf("\nSucces in encoding file %s\n", *argv);
         }
     }
 

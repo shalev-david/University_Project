@@ -84,6 +84,8 @@ struct symbols_table{
 struct binary_file{
     unsigned short code_size;
     unsigned short data_size;
+    unsigned short IC;
+    unsigned short DC;
     code* code_head;
     data* data_head;
     symbols_table* labels;
