@@ -13,7 +13,7 @@ int main(int argc, char* argv[]){
             short result = phase1(fp, *argv);
             if(result == 0)printf("\nFailed to encode file %s in phase 1\n", *argv);
             else if(result == -1)printf("\nFailed to encode file %s in phase 2\n", *argv);
-            else printf("\nSucces in encoding file %s\n", *argv);
+            else printf("\nSuccses in encoding file %s\n", *argv);
         }
     }
 

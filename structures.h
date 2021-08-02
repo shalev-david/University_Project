@@ -1,6 +1,5 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
-#define _GNU_SOURCE
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -16,31 +15,36 @@
 #define NOT_IN_USE_LENGTH 6
 #define BYTE_LENGTH 8
 #define HEX_SIZE 3
-#define LABEL_LENGTH 26
-#define MAX_INT 32767
-#define MIN_INT -32768
+#define LABEL_LENGTH 32
+#define MAX_INT_8 127
+#define MIN_INT_8 -128
+#define MAX_INT_16 32767
+#define MIN_INT_16 -32768
+#define MAX_INT_32  2147483647
+#define MIN_INT_32 -2147483647
+#define MAX_CHARACTERS 80
 #define R_COMMANDS 8
 #define I_COMMANDS 15
 #define J_COMMANDS 4
-#define INSTRUCTION_COMMANDS 7
+#define INSTRUCTION_COMMANDS 6
 #define REGISTERS 32
 
-enum type {CODE, DATA, ENTRY, EXTERN};
+enum type {CODE, DATA};
 enum code_type {R, I, J};
-enum data_type {DB, DH, DW, ASCIZ};
 
 /* define the structures */
 typedef struct code code;
 typedef struct data data;
+typedef struct data_val data_val;
 typedef struct symbols_table symbols_table;
 typedef struct binary_file binary_file;
 typedef struct external_file external_file;
 typedef struct entry_file entry_file;
 
+
 struct code{
     /* code typed command */
     code* next;
-    enum type T;
     enum code_type T_CODE;
 
     /* all of the variables below are binary strings */
@@ -65,25 +69,34 @@ struct code{
 struct data{
     /* data typed command */
     data* next;
-    enum type T;
-    enum data_type T_DATA;
+    data_val * val;
 
-    unsigned short size;
+
+    unsigned short bytes_occupied;
     unsigned short line;
     unsigned short original_line;
+};
+
+struct data_val{
+    char val[WORD_LENGTH];
+    data_val *next;
+    char hex[4][3];
+    size_t size;
 };
 
 struct symbols_table{
     /* symbol table */
     char *symbol;
     unsigned short val;
+    unsigned short ext;
+    unsigned short ent;
+    unsigned short unassigned;
     enum type T;
     symbols_table *next;
 };
 
 struct binary_file{
     unsigned short code_size;
-    unsigned short data_size;
     unsigned short IC;
     unsigned short DC;
     code* code_head;
@@ -104,7 +117,5 @@ struct entry_file{
     entry_file* next;
 };
 
-void convert_code_to_binary(code *ptr);
-void binary_to_hex(code *ptr);
 
 #endif

@@ -14,6 +14,8 @@ unsigned short double_comma(char c, unsigned short *error_flag, unsigned short *
 unsigned short valid_label(char* label, size_t size, symbols_table* table){
     unsigned i;
     symbols_table* ptr = table;
+
+    if(size >=LABEL_LENGTH) return 4;
     /* first character should be a letter */
     if((*label > 'Z' && label[0] < 'a') || *label < 'A' || *label > 'z'){
         /* error handle - first character must be a letter */
@@ -21,6 +23,7 @@ unsigned short valid_label(char* label, size_t size, symbols_table* table){
         return 1;
     }
     i=1;
+
     while(i<size){
         /* validate the characters of the label - only letters and numbers are allowed */
         if((label[i] > 'Z' && label[i] < 'a') || label[i] > 'z' || (label[i] > '9' && label[i] < 'A') || label[i] < '0'){
@@ -32,21 +35,29 @@ unsigned short valid_label(char* label, size_t size, symbols_table* table){
     }
 
     /* now check if the label is already exist in the symbol table */
-    while (ptr->next!= NULL){
-        if(!strncmp(label, ptr->symbol, size)) if(size == strlen(ptr->symbol))return 3;
+    /* if it is check if its not an entry label thats wating for value */
+    while (ptr->next != NULL){
+        if(!strncmp(label, ptr->symbol, size))
+            if(size == strlen(ptr->symbol)){
+                if(!ptr->unassigned)
+                    return 3;
+                /* the given label is already in the table and waiting to be filled */
+                else if(ptr->ext) return 6;
+                else return 5;
+            }
         ptr = ptr->next;
     }
     
     return 0;
 }
 
-void error_handle(short err_code, char* line, short l, short c, char* file_name){
+void error_handle(short err_code, char line[], short l, short c, char* file_name){
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    printf("Error in phase %d of the encoding of file %s\n", err_code < 100 ? 1: (err_code < 200 ? 2: 3) , file_name);
+    printf("Error in phase %d of the encoding of file %s\n\n", err_code < 100 ? 1: (err_code < 200 ? 2: 3) , file_name);
     switch (err_code)
     {
         case -1:{
-            printf("-- Failed to allocate space --\n\n");
+            printf("-- Failed to allocate space. Please try to execute again --\n\n");
             exit(0);
         }
         case 0:{
@@ -63,6 +74,14 @@ void error_handle(short err_code, char* line, short l, short c, char* file_name)
         }
         case 3:{
             printf("-- There is a double comma -- \n\n");
+            break;
+        }
+        case 4:{
+            printf("-- There should be a space after the command --\n\n");
+            break;
+        }
+        case 5:{
+            printf("-- There shouldn't be a comma after the command --\n\n");
             break;
         }
         case 10:{
@@ -85,6 +104,18 @@ void error_handle(short err_code, char* line, short l, short c, char* file_name)
             printf("-- Missing label --\n\n");
             break;
         }
+        case 15:{
+            printf("-- A label can have 31 characters at maximum --\n\n");
+            break;
+        }
+        case 16:{
+            printf("-- The given label already declared as extern and can not be declared in this file --\n\n");
+            break;
+        }
+        case 17:{
+            printf("-- I Branch command can't be executed with extern label --\n\n");
+            break;
+        }
         case 20:{
             printf("-- The given numbner is out of range --\n\n");
             break;
@@ -102,23 +133,31 @@ void error_handle(short err_code, char* line, short l, short c, char* file_name)
             break;
         }
         case 32:{
-            printf("-- Missing Immediate --\n\n");
+            printf("-- Missing Integer --\n\n");
             break;
         }
         case 33:{
-            printf("-- Immediate can only be numbers --\n\n");
+            printf("-- Immediate can only be Integers --\n\n");
             break;
         }
-        case 100:{
-            printf("-- This command cannot execute with an external label --\n\n");
+        case 40:{
+            printf("-- Missing quotation mark --\n\n");
+            break;
+        }
+        case 50:{
+            printf("-- Label can't be identified as extern and entry at the same time --\n\n");
             break;
         }
         case 101:{
             printf("-- The label isn't declared in this file --\n\n");
             break;
         }
+        case 102:{
+            printf("-- The label is set to entry and isn't declared in this file --\n\n");
+            break;
+        }
         case 200:{
-            printf("-- Filed to create the binary file --\n\n");
+            printf("-- Filed to create files. Please try to execute again --\n\n");
             break;
         }
             default:
@@ -133,17 +172,4 @@ void error_handle(short err_code, char* line, short l, short c, char* file_name)
         printf("^\n\n");
     }else if(err_code < 200) printf("In line: %d\n\n", l);
     printf("ERROR CODE: %d\n", err_code);
-}
-
-symbols_table* label_exist(char* label, symbols_table* table){
-    symbols_table *ptr = table;
-    while(ptr!= NULL){
-        if(!strcmp(label, ptr->symbol)){
-            return ptr;
-        }
-        
-        ptr = ptr->next;
-    }
-    
-    return NULL;
 }
