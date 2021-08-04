@@ -599,6 +599,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                             error_handle(1, line, line_count, c, file_name);
                         error_flag = 1;
                         flag = 0;
+                        state = END;
                         break;
                     }
                     /* assing the binary value */
@@ -645,6 +646,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                     error_handle(17, line, line_count, c, file_name);
                                 error_flag = 1;
                                 flag = 0;
+                                state = END;
                                 break;
                             }
                             if(!error_flag){
@@ -664,7 +666,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                         }
                         default:{
                             char *t;
-                            int immed = strtol(temp, &t, 10);
+                            long immed = strtol(temp, &t, 10);
                             /* first check if it a number */
                             if((*temp > '9' || *temp < '0') && *temp != '-' && *temp!='+'){
                                 error_handle(33, line, line_count, c, file_name);
@@ -726,6 +728,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                             error_handle(5, line, line_count, c, file_name);
                             error_flag = 1;
                             flag = 0;
+                            state = END;
                             break;
                         }
                         /* check if the given address is for a label or for a register */
@@ -736,7 +739,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                 error_handle(1, line, line_count, c, file_name);
                                 error_flag = 1;
                                 flag = 0;
-
+                                state = END;
                                 break;
                             }else{
                                 code_pointer->reg = '1';
@@ -770,6 +773,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                     error_handle(15, line, line_count, c, file_name);
                                 error_flag = 1;
                                 flag = 0;
+                                state = END;
                                 break;
                             }
                             if(!error_flag){
@@ -843,7 +847,6 @@ unsigned short phase1(FILE *fp, char* file_name){
                             state = END;
                             break;
                         }
-
                         
                         immed = strtol(temp, &t, 10);
                         switch (cmnd)
@@ -882,12 +885,27 @@ unsigned short phase1(FILE *fp, char* file_name){
                             break;
                         }
                         case DW:{
-                            if(immed > MAX_INT_32 || immed < MIN_INT_32 -1){
-                            /* error handle - out of range */
-                                error_handle(20, line, line_count, c, file_name);
-                                error_flag = 1;
-                                flag = 0;
-                                break;
+                            if(immed == MAX_INT_32 || immed == MIN_INT_32 -1){
+                                /* can be an out of range - need to check it */
+                                /* first lets check the number of digits the given number have */
+                                if(t-temp == 10 || (t-temp == 11 && (*temp == '+' || *temp == '-') )){
+                                    /* 10 characters is the size of the max int - 11 if it has + or - at the starts */
+                                    if(out_of_range32(temp)){
+                                        /* error handle - 11+ chracters - out of range */
+                                        error_handle(20, line, line_count, c, file_name);
+                                        error_flag = 1;
+                                        flag = 0;
+                                        state = END;
+                                        break;
+                                    }
+                                }else{
+                                    /* error handle - 11+ chracters - out of range */
+                                    error_handle(20, line, line_count, c, file_name);
+                                    error_flag = 1;
+                                    flag = 0;
+                                    state = END;
+                                    break;
+                                }   
                             }
                             /* assing the binary value */
                             if(!error_flag) {
@@ -931,10 +949,11 @@ unsigned short phase1(FILE *fp, char* file_name){
                 case STRING:{
                         /* check if the first character after all the spaces isn't a quotation mark */
                         if(*temp != '"'){
-                            /*error handle - missing quotation mark */
+                            /* error handle - missing quotation mark */
                             error_handle(40, line, line_count, c, file_name);
                             error_flag = 1;
                             flag = 0;
+                            state = END;
                             break;
                         }
                         /* else continue */
@@ -961,6 +980,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                             error_handle(40, line, line_count, c, file_name);
                             error_flag = 1;
                             flag = 0;
+                            state = END;
                             break;
                         }
 
@@ -1008,6 +1028,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                     error_handle(50, line, line_count, c, file_name);
                                     error_flag = 1;
                                     flag = 0;
+                                    state = END;
                                     break;
                                 }
                                 if(!error_flag){
@@ -1020,6 +1041,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                     error_handle(50, line, line_count, c, file_name);
                                     error_flag = 1;
                                     flag = 0;
+                                    state = END;
                                     break;
                                 }
                                 if(!error_flag){
@@ -1033,6 +1055,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                 error_handle(50, line, line_count, c, file_name);
                                 error_flag = 1;
                                 flag = 0;
+                                state = END;
                                 break;
                             }
                         else if(v==6){
@@ -1041,6 +1064,7 @@ unsigned short phase1(FILE *fp, char* file_name){
                                 error_handle(50, line, line_count, c, file_name);
                                 error_flag = 1;
                                 flag = 0;
+                                state = END;
                                 break;
                             }
                         }
@@ -1141,6 +1165,16 @@ unsigned short phase1(FILE *fp, char* file_name){
                         error_handle(32, line, line_count, c, file_name);
                         break; 
                     }
+                    case STRING:{
+                        error_flag = 1;
+                        error_handle(34, line, line_count, c, file_name);
+                        break;
+                    }
+                    case LABEL:{
+                        error_flag = 1;
+                        error_handle(35, line, line_count, c, file_name);
+                        break;
+                    }
                     default: break;
 
                 }
@@ -1162,11 +1196,11 @@ unsigned short phase1(FILE *fp, char* file_name){
     else return phase2(bf, extf, entf, file_name);
 }
 
-void int_to_binary(char dest[], int num, short bits){
+void int_to_binary(char dest[], long num, short bits){
     unsigned i;
     for(i=0; i<bits; i++)
     {
-        unsigned int mask = 1u << (bits - 1 - i);
+        unsigned long mask = 1u << (bits - 1 - i);
         dest[i] = (num & mask) ? '1' : '0';
     }
     dest[bits] = '\0';
@@ -1665,4 +1699,23 @@ void* allocate_pointer(short option, char* file_name){
         break;
     }
     return ptr;
+}
+
+short out_of_range32(char* ptr){
+    /* check if the first charters is either + or - */
+    unsigned i = 0;
+    unsigned minus = 0;
+    long num;
+    char *t;
+    if(*ptr == '-'){
+        i=1;
+        minus = 1;
+    }else if(*ptr == '+') i=1;
+    /* now check every character if it is bigger than the max int */
+    /* start with the first character */
+    if(*(ptr+i) != '2') return 1;
+    /* else check the number after the first character */
+    num = strtol(ptr+i+1, &t, 10);
+    if(num > 147483647 + minus) return 1;
+    return 0;
 }

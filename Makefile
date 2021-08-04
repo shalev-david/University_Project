@@ -8,7 +8,7 @@ CXXFLAGS = -Wall -ansi -pedantic
 LDFLAGS = 
 
 # Makefile settings - Can be customized.
-APPNAME = main
+APPNAME = assembler
 EXT = .c
 SRCDIR = .
 OBJDIR = .

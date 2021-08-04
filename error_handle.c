@@ -1,16 +1,5 @@
 #include "error_handle.h"
 
-unsigned short double_comma(char c, unsigned short *error_flag, unsigned short *flag){
-    if(c == ','){
-        /* error handle - double comma */
-
-        *error_flag = 1;
-        *flag = 0;
-        return 1;
-    }
-    return 0;
-}
-
 unsigned short valid_label(char* label, size_t size, symbols_table* table){
     unsigned i;
     symbols_table* ptr = table;
@@ -138,6 +127,14 @@ void error_handle(short err_code, char line[], short l, short c, char* file_name
         }
         case 33:{
             printf("-- Immediate can only be Integers --\n\n");
+            break;
+        }
+        case 34:{
+            printf("-- Missing String --\n\n");
+            break;
+        }
+        case 35:{
+            printf("-- Missing Label --\n\n");
             break;
         }
         case 40:{
